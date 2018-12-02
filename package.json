@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "mongodb": "^3.1.10",
     "puppeteer": "^1.10.0",
     "ramda": "^0.26.0"
   }

@@ -16,6 +16,16 @@ async function crawlPage(browser, epIndex) {
       console.log(epIndex, "---", oid);
     }
   });
+  const file = fs.createWriteStream('第' + epItem.index + '集 ' + title.title + '.json');
+  file.write('[');
+  file.end(']');
+
+  file.on
+  await page.exposeFunction('fswrite', (text) =>{
+    if(file.write(text)){
+
+    }
+  });
 
   await page.goto(
     "https://www.bilibili.com/bangumi/play/ss24588/?from=search&seid=15802154388770833208",
@@ -58,14 +68,13 @@ async function crawlPage(browser, epIndex) {
     }
 
     let { count, size } = res1.data.page,
-      total = Math.ceil(count / size),
+      total = Math.min(20, Math.ceil(count / size)),
       i = 2;
 
     return await new Promise((resolve, reject) => {
       function run(todos, size) {
-        let success = {},
-          j = todos[0].pn;
-
+        let success = {}, j = todos[0].pn;
+        debugger;
         function next() {
           if (!todos.length) {
             resolve([]);
@@ -95,7 +104,7 @@ async function crawlPage(browser, epIndex) {
                 success[pn] = todo;
                 consume(success);
 
-                setTimeout(next, 20);
+                setTimeout(next, 2000);
               }
             })
             .fail(() => {
@@ -107,7 +116,7 @@ async function crawlPage(browser, epIndex) {
                 consume(success);
               }
 
-              setTimeout(next, 20);
+              setTimeout(next, 2000);
             });
         }
 
@@ -126,6 +135,7 @@ async function crawlPage(browser, epIndex) {
         }
 
         //维持10个请求
+        size = Math.min(size, todos.length - 1)
         for (let i = 0; i <= size; i++) {
           next();
         }
@@ -137,11 +147,11 @@ async function crawlPage(browser, epIndex) {
         todos.push({ pn: i, retry: 0, data: null });
       }
 
-      run(todos, 6);
+      run(todos, 4);
     });
   }, oid);
 
-  fs.writeFileSync(epItem.index + epItem.title + ".json", JSON.stringify(res));
+  // fs.writeFileSync(epItem.index + epItem.title + ".json", JSON.stringify(res));
 }
 
 (async () => {
@@ -180,7 +190,7 @@ async function crawlPage(browser, epIndex) {
 })();
 
 
-function close(){
+async function close(){
   const eplistHandle = await page.evaluateHandle(async () => {
     debugger;
     let elems = document.querySelectorAll(".episode-list .ep-index"),
